@@ -1,5 +1,6 @@
 pub mod cmds;
 
+pub(crate) mod da;
 use clap::Parser;
 use cmds::Command;
 

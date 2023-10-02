@@ -215,6 +215,10 @@ impl DaProtocol for FullReplication<AbsoluteNumber<Attestation, Certificate>> {
         }
     }
 
+    fn can_build_certificate(&self) -> bool {
+        self.certificate_strategy.can_build(&self.attestations)
+    }
+
     fn certify_dispersal(&mut self) -> Option<Self::Certificate> {
         self.output_certificate_buf.pop()
     }
