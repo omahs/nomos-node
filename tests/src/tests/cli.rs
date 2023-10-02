@@ -63,7 +63,7 @@ async fn disseminate_blob() {
 
 async fn wait_for_cert_in_mempool(node: &NomosNode) {
     loop {
-        if node.get_mempoool_metrics(Pool::Da).await.pending_items > 0 {
+        if node.mempoool_metrics(Pool::Da).await.pending_items > 0 {
             break;
         }
         tokio::time::sleep(Duration::from_millis(100)).await;

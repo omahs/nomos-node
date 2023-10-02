@@ -13,7 +13,7 @@ use nomos_consensus::{CarnotInfo, CarnotSettings};
 use nomos_http::backends::axum::AxumBackendSettings;
 use nomos_libp2p::Multiaddr;
 use nomos_log::{LoggerBackend, LoggerFormat};
-use nomos_mempool::MempoolMetrics;
+use nomos_mempool::{backend::Status, MempoolMetrics};
 use nomos_network::backends::libp2p::{Libp2pConfig, Libp2pInfo};
 use nomos_network::NetworkConfig;
 use nomos_node::Config;
@@ -22,6 +22,7 @@ use fraction::Fraction;
 use once_cell::sync::Lazy;
 use rand::{thread_rng, Rng};
 use reqwest::Client;
+use serde::Serialize;
 use tempfile::NamedTempFile;
 
 static CLIENT: Lazy<Client> = Lazy::new(Client::new);
@@ -96,6 +97,14 @@ impl NomosNode {
             .await
     }
 
+    async fn post(&self, path: &str, body: Vec<u8>) -> reqwest::Result<reqwest::Response> {
+        CLIENT
+            .post(format!("http://{}/{}", self.addr, path))
+            .body(body)
+            .send()
+            .await
+    }
+
     async fn wait_online(&self) {
         while self.get(CARNOT_INFO_API).await.is_err() {
             tokio::time::sleep(Duration::from_millis(100)).await;
@@ -112,12 +121,12 @@ impl NomosNode {
             .swap_remove(0)
     }
 
-    pub async fn get_mempoool_metrics(&self, pool: Pool) -> MempoolMetrics {
+    pub async fn mempoool_metrics(&self, pool: Pool) -> MempoolMetrics {
         let discr = match pool {
             Pool::Cl => "cl",
             Pool::Da => "da",
         };
-        let addr = format!("{}{}/{}_metrics", MEMPOOL_API, discr, discr);
+        let addr = format!("{}{}/metrics", MEMPOOL_API, discr);
         let res = self
             .get(&addr)
             .await
@@ -129,6 +138,37 @@ impl NomosNode {
             pending_items: res["pending_items"].as_u64().unwrap() as usize,
             last_item_timestamp: res["last_item"].as_u64().unwrap(),
         }
+    }
+
+    pub async fn mempoool_status<K>(&self, pool: Pool, ids: Vec<K>) -> Vec<Status>
+    where
+        K: Serialize,
+    {
+        let discr = match pool {
+            Pool::Cl => "cl",
+            Pool::Da => "da",
+        };
+        let addr = format!("{}{}/status", MEMPOOL_API, discr);
+        let res = self
+            .post(&addr, serde_json::to_string(&ids).unwrap().into())
+            .await
+            .unwrap();
+        println!("res: {:?}", res);
+        self.post(&addr, serde_json::to_string(&ids).unwrap().into())
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap()
+    }
+
+    pub async fn send_mempool_item(&self, pool: Pool, item: Vec<u8>) {
+        let discr = match pool {
+            Pool::Cl => "cl",
+            Pool::Da => "da",
+        };
+        let addr = format!("{}{}/add", MEMPOOL_API, discr);
+        self.post(&addr, item).await.unwrap();
     }
 
     // not async so that we can use this in `Drop`
