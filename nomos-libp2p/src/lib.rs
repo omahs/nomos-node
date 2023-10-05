@@ -96,6 +96,7 @@ impl Swarm {
             gossipsub::ConfigBuilder::default()
                 .validation_mode(gossipsub::ValidationMode::None)
                 .message_id_fn(compute_message_id)
+                .heartbeat_initial_delay(Duration::from_secs(1))
                 .build()?,
         )?;
 

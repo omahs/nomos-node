@@ -26,7 +26,7 @@ async fn happy_test(nodes: Vec<NomosNode>) {
             println!(
                 "waiting... {}",
                 stream::iter(&nodes)
-                    .then(|n| async move { format!("{}", n.consensus_info().await.current_view) })
+                    .then(|n| async move { format!("{}:{}", n.config().consensus.private_key[0], n.consensus_info().await.current_view) })
                     .collect::<Vec<_>>()
                     .await
                     .join(" | ")

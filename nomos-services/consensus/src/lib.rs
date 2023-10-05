@@ -804,9 +804,11 @@ where
                 async move {
                     let proposal = Block::from_bytes(&msg.data);
                     if proposal.header().id == msg.proposal {
+                        tracing::warn!("GATHER_BLOCK: block received: proposal:{proposal:?}");
                         // TODO: Leader is faulty? what should we do?
                         Some(proposal)
                     } else {
+                        tracing::warn!("GATHER_BLOCK: block received, but block.header.id != msg.proposal({:?}): proposal:{proposal:?}", msg.proposal);
                         None
                     }
                 }

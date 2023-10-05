@@ -41,7 +41,11 @@ pub struct NomosNode {
 impl Drop for NomosNode {
     fn drop(&mut self) {
         if std::thread::panicking() {
-            println!("persisting directory at {}", self._tempdir.path().display());
+            println!(
+                "persisting directory at {} (node {})",
+                self._tempdir.path().display(),
+                self.config.consensus.private_key[0]
+            );
             // we need ownership of the dir to persist it
             let dir = std::mem::replace(&mut self._tempdir, tempfile::tempdir().unwrap());
             // a bit confusing but `into_path` persists the directory
@@ -65,7 +69,8 @@ impl NomosNode {
             directory: dir.path().to_owned(),
             prefix: Some(LOGS_PREFIX.into()),
         };
-        config.log.format = LoggerFormat::Json;
+        config.log.format = LoggerFormat::Plain;
+        config.log.level = tracing::Level::TRACE;
 
         serde_yaml::to_writer(&mut file, &config).unwrap();
         let child = Command::new(std::env::current_dir().unwrap().join(NOMOS_BIN))
@@ -152,9 +157,10 @@ impl Node for NomosNode {
                 mut mixnet_node_configs,
                 mixnet_topology,
             } => {
-                let mut ids = vec![[0; 32]; n_participants];
-                for id in &mut ids {
-                    thread_rng().fill(id);
+                let mut ids = vec![[0u8; 32]; n_participants];
+                for (i, id) in ids.iter_mut().enumerate() {
+                    // thread_rng().fill(id);
+                    id[0] = u8::try_from(i).unwrap();
                 }
 
                 let mut configs = ids

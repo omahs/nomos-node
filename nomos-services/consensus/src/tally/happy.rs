@@ -62,13 +62,19 @@ impl Tally for CarnotTally {
         while let Some(vote) = vote_stream.next().await {
             // check vote view is valid
             if vote.vote.view != block.view || vote.vote.block != block.id {
+                tracing::warn!("TALLY: vote received, but invalid: vote:{vote:?}, block:{block:?}");
                 continue;
             }
 
             // check for individual nodes votes
             if !self.settings.participating_nodes.contains(&vote.voter) {
+                tracing::warn!(
+                    "TALLY: vote received, but not from participating_nodes: vote:{vote:?}"
+                );
                 continue;
             }
+
+            tracing::warn!("TALLY: vote received: vote:{vote:?}");
 
             seen.insert(vote.voter);
             outcome.insert(vote.vote.clone());
