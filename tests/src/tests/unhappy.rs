@@ -64,6 +64,9 @@ async fn ten_nodes_one_down() {
             .iter()
             .map(|i| i.last_view_timeout_qc.clone())
             .collect::<HashSet<_>>();
+        if timeout_qcs.len() > 1 {
+            println!("TIMEOUT_QCS: {timeout_qcs:?}");
+        }
         assert_eq!(timeout_qcs.len(), 1);
 
         let timeout_qc = timeout_qcs.iter().next().unwrap().clone();
