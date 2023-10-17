@@ -8,6 +8,7 @@ axum = ["dep:axum", "dep:hyper", "utoipa-swagger-ui/axum"]
 
 [dependencies]
 async-trait = "0.1"
+bytes = "1"
 overwatch-rs = { git = "https://github.com/logos-co/Overwatch", rev = "6e6678b" }
 overwatch-derive = { git = "https://github.com/logos-co/Overwatch", rev = "6e6678b" }
 tracing = "0.1"
@@ -15,6 +16,7 @@ nomos-core = { path = "../nomos-core" }
 nomos-da = { path = "../nomos-services/data-availability" }
 nomos-mempool = { path = "../nomos-services/mempool", features = ["mock", "libp2p", "openapi"] }
 full-replication = { path = "../nomos-da/full-replication" }
+serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.32", features = ["full"] }
 thiserror = "1"
 utoipa = "4.0"
