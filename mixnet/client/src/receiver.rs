@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 
 use futures::{stream, Stream, StreamExt};
 use mixnet_protocol::Body;
@@ -23,6 +23,7 @@ impl Receiver {
     }
 
     pub async fn run(&self) -> Result<impl Stream<Item = Result<Vec<u8>>> + Send + 'static> {
+        tokio::time::sleep(Duration::from_secs(3)).await;
         let Ok(socket) = TcpStream::connect(self.node_address).await else {
             return Err(MixnetClientError::MixnetNodeConnectError);
         };

@@ -60,6 +60,8 @@ impl Tally for CarnotTally {
             ));
         }
         while let Some(vote) = vote_stream.next().await {
+            tracing::warn!("VOTE RECEIVED");
+
             // check vote view is valid
             if vote.vote.view != block.view || vote.vote.block != block.id {
                 continue;
@@ -72,7 +74,10 @@ impl Tally for CarnotTally {
 
             seen.insert(vote.voter);
             outcome.insert(vote.vote.clone());
+            tracing::warn!("VOTE INSERTED: voter:{:?}", vote.voter);
+
             if seen.len() >= self.settings.threshold {
+                tracing::warn!("VOTE THRESHOLD MET");
                 return Ok((
                     Qc::Standard(StandardQc {
                         view: vote.vote.view,
@@ -80,6 +85,12 @@ impl Tally for CarnotTally {
                     }),
                     outcome,
                 ));
+            } else {
+                tracing::warn!(
+                    "VOTE THRESHOLD NOT MET: seen:{}, threshold:{:?}",
+                    seen.len(),
+                    self.settings.threshold
+                );
             }
         }
 

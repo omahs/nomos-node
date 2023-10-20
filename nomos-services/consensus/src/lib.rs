@@ -809,6 +809,7 @@ where
         tally: CarnotTallySettings,
     ) -> Event<ClPool::Item, DaPool::Item> {
         let tally = CarnotTally::new(tally);
+        tracing::warn!("GATHERING VOTES: tally:{:?}, block:{:?}", tally, block);
         let votes_stream = adapter.votes_stream(&committee, block.view, block.id).await;
         match tally.tally(block.clone(), votes_stream).await {
             Ok((qc, votes)) => Event::Approve { qc, votes, block },
